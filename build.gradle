@@ -1,0 +1,44 @@
+
+
+task hello {
+    def allUsers = new File( 'd:/labs/tmp/emo1.txt' ).readLines() as String[]
+    def someUsers = new File( 'd:/labs/tmp/emo2.txt' ).readLines() as String[]
+    //def diff = allUsers.text.tokenize( '\n' ) - someUsers.text.tokenize( '\n' )
+    //def diff = allUsers.text - someUsers.text
+    def d1 = allUsers - someUsers
+    def d2 = someUsers - allUsers
+    println "==============="
+    doLast {
+        println 'Hello world!'
+        //println "DIFF : $diff"
+        println "d1:$d1 ; d2:$d2"
+        
+    }
+}
+
+def srcDIR  = new File("d:/labs/tmp")
+def distDIR = new File("d:/labs/tmp/toRemove")
+
+task unzip(type: Copy) {
+    def fileZip=new File(srcDIR,"dir1.zip")
+
+    if(!fileZip.exists()) {
+        println "File zip $fileZip NOT EXIST!"
+
+    }else {
+        println "File zip $fileZip EXIST"
+
+        if(!distDIR.exists()) {
+            distDIR.mkdir()
+
+        }else {
+            //delete fileTree(distDIR).include('**/*')
+
+            delete distDIR
+        }
+
+        //
+        from zipTree(fileZip)
+        into distDIR
+    }
+}
