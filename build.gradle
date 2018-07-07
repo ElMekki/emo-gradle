@@ -1,18 +1,20 @@
-String.metaClass.getNotBlank = { !delegate.allWhitespace }
 
 def srcDIR  = new File("d:/labs/tmp")
 def distDIR = new File("d:/labs/tmp/toRemove")
+def livHOME = new File("D:/labs/sncf/20180126/livMOE/Sprint11")
 def fileName="dir1.zip"
 
 //
-
-loadProps()
-//
 def loadProps() {
-    def numSP= hasProperty('nsp') ? nsp : ''
-
+    def numSP = hasProperty('nsp') ? nsp : ''
+    
     if(numSP?.trim()) {
         println "numero SPRINT $numSP"
+        project.ext.set 'numSP', numSP
+
+        //
+  
+
     } else {
         println "numero SPRINT inconnu!"
         throw new Error('num SPRINT inconnu')
@@ -20,13 +22,20 @@ def loadProps() {
 
 }
 
+//
+loadProps()
+
 task clean() {
     delete distDIR
 }
 
 task unzip(dependsOn: clean, type: Copy) {
-    def fileZip=new File(srcDIR,fileName)
-    
+    //def fileZip=new File(srcDIR,fileName)
+    def livFileName= fileTree(livHOME).filter { it.isFile() && it.name.endsWith('.zip') }.files.name[0]
+    println "livFileName : $livFileName"
+    def fileZip=new File(livHOME, livFileName)
+  
+    println "UNZIP Numero SPRINT : $numSP"
     from zipTree(fileZip)
-    into distDIR
+    into new File(distDIR, "SPRINT-$numSP")
 }
