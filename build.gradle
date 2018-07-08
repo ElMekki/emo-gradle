@@ -1,7 +1,7 @@
 
 def srcDIR  = new File("d:/labs/tmp")
-def distDIR = new File("d:/labs/tmp/toRemove")
-def livHOME = new File("D:/labs/sncf/20180126/livMOE/Sprint11")
+ext.distDIRSTR = "d:/labs/tmp/toRemove"
+ext.livHOME = new File("D:/labs/sncf/20180126/livMOE/Sprint11")
 def fileName="dir1.zip"
 
 //
@@ -11,6 +11,7 @@ def loadProps() {
     if(numSP?.trim()) {
         println "numero SPRINT $numSP"
         project.ext.set 'numSP', numSP
+        project.ext.distDIR= new File(distDIRSTR, "SPRINT-$numSP")
 
         //
   
@@ -30,8 +31,27 @@ task clean() {
 }
 
 task unzip(dependsOn: clean, type: Copy) {
-    //def fileZip=new File(srcDIR,fileName)
-    //def livFileName= fileTree(livHOME).filter { it.isFile() && it.name.endsWith('.zip') }.files.name[0]
+    def obj=getDeliveryInfo()
+    def fileZip=obj.fileZip
+    def version=obj.version
+    def sprint=obj.sprint
+    
+    println "UNZIP file: $fileZip.name ; Numero SPRINT-Param: $numSP ; Version: $version; SPIRNT-LIV: $sprint"
+
+   from zipTree(fileZip)
+    eachFile {
+        def newPath = it.relativePath.segments[1..-1].join("/")
+        it.relativePath = RelativePath.parse(true, newPath)
+    }
+    into distDIR
+
+    doLast {
+        def dirToDelete = new File(distDIR,obj.fileZipNameWithoutExt)
+        dirToDelete.deleteOnExit()
+    }
+}
+
+def getDeliveryInfo() {
     def livFileName= fileTree(livHOME){include "**/*.zip"}
     assert 1 == livFileName.files.size()
     println "livFileName : $livFileName.files"
@@ -40,9 +60,7 @@ task unzip(dependsOn: clean, type: Copy) {
     def arr=fileZipName.split('-')[3]
     def version = arr.split('_')[0]
     def sprint =arr.split('_')[1].split('\\.')[0]
-    
-    println "UNZIP file: $fileZipName ; Numero SPRINT-Param: $numSP ; Version: $version; SPIRNT-LIV: $sprint"
-    
-    // from zipTree(fileZip)
-    // into new File(distDIR, "SPRINT-$numSP")
+    def fileZipNameWithoutExt=fileZipName.lastIndexOf('.').with {it != -1 ? fileZipName[0..<it] : fileZipName}
+
+    return [fileZip:fileZip,fileZipNameWithoutExt:fileZipNameWithoutExt, version:version, sprint:sprint]
 }
